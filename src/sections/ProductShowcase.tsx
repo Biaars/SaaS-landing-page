@@ -2,55 +2,101 @@
 import productImage from "@/assets/product-image.png";
 import pyramidImage from "@/assets/pyramid.png";
 import tubeImage from "@/assets/tube.png";
-import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useAnimation,
+  useMotionValueEvent,
+} from "framer-motion";
 
 export const ProductShowcase = () => {
-  const sectionRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
+  const productRef = useRef(null);
+  const controls = useAnimation();
+
+  const { scrollYProgress: scrollYProgressRotate } = useScroll({
+    target: productRef,
+    offset: ["start end", "start start"],
+  });
+
+  const { scrollYProgress: scrollYProgressTranslate } = useScroll({
+    target: productRef,
     offset: ["start end", "end start"],
   });
-  const translateY = useTransform(scrollYProgress, [0, 1], [150, -150]);
+
+  const translateY = useTransform(
+    scrollYProgressTranslate,
+    [0, 1],
+    [300, -300]
+  );
+  const rotateX = useTransform(scrollYProgressRotate, [0, 1], [90, 0]);
+
+  const animateOpacity = () => {
+    controls.start({
+      opacity: 1,
+      transition: { ease: "linear" },
+    });
+  };
+
+  useMotionValueEvent(scrollYProgressRotate, "change", (value) => {
+    if (value > 0 && value <= 1) {
+      animateOpacity();
+    }
+  });
+
+  useEffect(() => {
+    const initialValue = scrollYProgressRotate.get();
+    if (initialValue > 0 && initialValue <= 1) {
+      animateOpacity();
+    }
+  }, []);
+
   return (
     <section
-      ref={sectionRef}
-      className="bg-gradient-to-b from-[#FFFFFF] to-[#D2DCFF] py-24 overflow-x-clip"
+      ref={productRef}
+      className="bg-gradient-to-b from-[#ffffff] to-[#D2DCFF] py-24 overflow-x-clip"
     >
       <div className="container">
-        <div className="section-heading">
-          <div className="flex justify-center">
-            <div className="tag">Boost your productivity</div>
-          </div>
-          <h2 className="section-title mt-5">
-            A more effective way to track progress
-          </h2>
-          <p className="section-description mt-5">
-            Effortlessly turn your ideas into a fully functional, responsive,
+        <div className="centered-content-container">
+          <div className="pill">Boost your productivity</div>
+          <h2 className="h2-style">A more effective way to track progress</h2>
+          <p className="paragraph text-center">
+            Effortlessly turn your ideas into a fully functional, responsive
             SaaS website in just minutes with this template.
           </p>
         </div>
         <div className="relative">
-          <Image src={productImage} alt="Product Image" className="mt-10" />
+          <motion.img
+            src={productImage.src}
+            className="pt-10"
+            alt={"Image of the product"}
+            initial={{ rotateX: 90, opacity: 0 }}
+            animate={controls}
+            style={{
+              rotateX,
+            }}
+          />
           <motion.img
             src={pyramidImage.src}
-            alt="Pyramid Image"
-            height={262}
+            className="hidden md:block absolute -top-24 -right-32"
+            alt={"Pyramid Image"}
             width={262}
-            className="hidden md:block absolute -right-36 -top-32"
+            height={262}
+            initial={{ y: 300 }}
             style={{
-              translateY,
+              y: translateY,
             }}
           />
           <motion.img
             src={tubeImage.src}
-            alt="Tube image"
-            height={248}
-            width={248}
-            className="hidden md:block absolute bottom-24 -left-36"
+            className="hidden md:block absolute bottom-8 lg:bottom-24 -left-36 lg:-left-40"
+            alt={"Tube Image"}
+            width={262}
+            height={262}
+            initial={{ y: 300 }}
             style={{
-              translateY,
+              y: translateY,
             }}
           />
         </div>
